@@ -43,9 +43,10 @@ app.post('/api/diaries', (req, res) => {
 });
 
 // 启动服务器，监听 3000 端口
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
     console.log(`🚀 服务器运行在端口 ${PORT}`);
 });
+
 
 
