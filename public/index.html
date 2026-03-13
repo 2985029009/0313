@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的动态个人主页</title>
+    <style>
+        /* 这里的CSS完全保留你原来的，未做任何删减 */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; margin: 0; padding: 0; color: #333; background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb); background-size: 400% 400%; animation: gradientBG 15s ease infinite; min-height: 100vh; position: relative; padding-bottom: 80px; }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        header { text-align: center; padding: 4rem 1rem 2rem; color: #fff; text-shadow: 1px 1px 4px rgba(0,0,0,0.3); }
+        header h1 { margin: 0; font-size: 2.8rem; }
+        .container { max-width: 800px; margin: 0 auto 4rem auto; padding: 0 1rem; }
+        section { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 2rem; margin-bottom: 2rem; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        section:hover { transform: translateY(-5px); }
+        h2 { color: #2c3e50; border-bottom: 2px solid #a1c4fd; padding-bottom: 0.5rem; }
+        .diary-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .diary-form textarea { width: 100%; height: 80px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; resize: vertical; box-sizing: border-box; }
+        .diary-form button { padding: 10px 20px; background-color: #a1c4fd; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.3s; align-self: flex-start; }
+        .diary-form button:hover { background-color: #8bb3f4; }
+        .diary-entry { background: rgba(255, 255, 255, 0.9); border-left: 4px solid #ff9a9e; padding: 15px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }
+        .diary-date { font-size: 0.85rem; color: #888; margin-bottom: 8px; }
+        .diary-img-preview { max-width: 100%; border-radius: 6px; margin-top: 10px; }
+        footer { text-align: center; padding: 1.5rem; background: rgba(0,0,0,0.1); color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); position: fixed; bottom: 0; width: 100%; }
+        .click-ripple { position: fixed; border-radius: 50%; background: rgba(255, 255, 255, 0.6); transform: scale(0); animation: ripple-anim 0.5s linear; pointer-events: none; z-index: 9999; }
+        @keyframes ripple-anim { to { transform: scale(3); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1> 欢 迎 光 临 👋</h1>
+    <p>欢迎来到我的个人小站</p>
+</header>
+
+<div class="container">
+    <section>
+        <h2>关于我</h2>
+        <p>这是一个拥有动态背景、点击反馈和时光记录的全新主页。现在它拥有了真正的后端数据库！</p>
+    </section>
+
+    <section>
+        <h2>📝 我的日记</h2>
+        <div class="diary-form">
+            <textarea id="diary-text" placeholder="今天发生了什么有趣的事情？写下来吧..."></textarea>
+            <div>
+                <!-- 极简版目前只支持上传图片 -->
+                <input type="file" id="diary-file" accept="image/*" />
+            </div>
+            <button onclick="addDiary()" id="submit-btn">发布日记</button>
+        </div>
+
+        <div id="diary-list">
+            <p>正在加载日记...</p>
+        </div>
+    </section>
+</div>
+
+<footer>
+    🌟 这个小站已经在浩瀚的宇宙中运行了：<br>
+    <span id="uptime-clock" style="font-weight: bold; font-size: 1.2rem;">计算中...</span>
+</footer>
+
+<script>
+    // --- 保持原有的时钟功能 ---
+    const startDate = new Date(2026, 2, 13, 0, 0, 0).getTime();
+    function updateClock() {
+        const now = new Date().getTime();
+        const distance = now - startDate;
+        if (distance < 0) { document.getElementById("uptime-clock").innerHTML = "网站还在筹备中！"; return; }
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        document.getElementById("uptime-clock").innerHTML =  days + " 天 " + hours + " 小时 " + minutes + " 分钟 " + seconds + " 秒 ";
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // --- 保持原有的波纹特效 ---
+    document.addEventListener('click', function(e) {
+        const ripple = document.createElement('div');
+        ripple.className = 'click-ripple';
+        const size = 50;
+        ripple.style.width = size + 'px'; ripple.style.height = size + 'px';
+        ripple.style.left = (e.clientX - size/2) + 'px'; ripple.style.top = (e.clientY - size/2) + 'px';
+        document.body.appendChild(ripple);
+        setTimeout(() => { ripple.remove(); }, 500);
+    });
+
+    // --- 新增：页面加载时向后端请求日记数据 ---
+    window.onload = function() {
+        loadDiaries();
+    };
+
+    async function loadDiaries() {
+        const response = await fetch('/api/diaries');
+        const diaries = await response.json();
+        const diaryList = document.getElementById('diary-list');
+        diaryList.innerHTML = ''; // 清空加载提示
+
+        diaries.forEach(diary => {
+            renderDiary(diary);
+        });
+    }
+
+    // --- 将文件转为 Base64 文本的魔法函数 ---
+    function getBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // --- 更新：提交日记给后端 ---
+    async function addDiary() {
+        const textInput = document.getElementById('diary-text').value;
+        const fileInput = document.getElementById('diary-file');
+        const btn = document.getElementById('submit-btn');
+
+        if (textInput.trim() === '' && fileInput.files.length === 0) {
+            alert("总得写点什么或者传张图片吧！"); return;
+        }
+
+        btn.innerText = "发布中...";
+        btn.disabled = true;
+
+        const now = new Date();
+        const dateStr = now.getFullYear() + "-" + (now.getMonth()+1) + "-" + now.getDate() + " " + now.getHours() + ":" + now.getMinutes();
+
+        let base64Image = null;
+        if (fileInput.files.length > 0) {
+            base64Image = await getBase64(fileInput.files[0]); // 把图片变成文本
+        }
+
+        const newDiary = {
+            date: dateStr,
+            text: textInput,
+            image: base64Image
+        };
+
+        // 发送给服务器
+        await fetch('/api/diaries', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newDiary)
+        });
+
+        // 重新加载日记列表
+        await loadDiaries();
+
+        // 恢复初始状态
+        document.getElementById('diary-text').value = '';
+        document.getElementById('diary-file').value = '';
+        btn.innerText = "发布日记";
+        btn.disabled = false;
+    }
+
+    // --- 渲染一条日记的函数 ---
+    function renderDiary(diary) {
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'diary-entry';
+
+        const dateSpan = document.createElement('div');
+        dateSpan.className = 'diary-date';
+        dateSpan.innerText = diary.date;
+        entryDiv.appendChild(dateSpan);
+
+        if (diary.text) {
+            const textP = document.createElement('p');
+            textP.style.margin = '0';
+            textP.innerHTML = diary.text.replace(/\n/g, '<br>');
+            entryDiv.appendChild(textP);
+        }
+
+        if (diary.image) {
+            const img = document.createElement('img');
+            img.src = diary.image;
+            img.className = 'diary-img-preview';
+            entryDiv.appendChild(img);
+        }
+
+        document.getElementById('diary-list').appendChild(entryDiv);
+    }
+</script>
+</body>
+</html>
