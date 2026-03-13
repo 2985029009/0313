@@ -1,5 +1,5 @@
 // server.js - 你的极简后端
-const PORT = process.env.PORT || 3000;
+
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -47,4 +47,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 服务器运行在端口 ${PORT}`);
 });
+
 
