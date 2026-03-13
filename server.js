@@ -7,8 +7,12 @@ const path = require('path');
 const app = express();
 // 允许接收较大的数据（因为我们要把图片转成文本传过来，体积较大）
 app.use(express.json({ limit: '50mb' }));
-// 让服务器把 public 文件夹里的文件展示给用户
-app.use(express.static('public'));
+// ✅ 静态文件服务 - 当前目录
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // 数据库文件路径
 const DB_FILE = path.join(__dirname, 'database.json');
